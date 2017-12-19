@@ -1,1 +1,1 @@
-This project is using room database(arch component), RxKotlin
+This project is using room persistance(arch component) with RxKotlin
