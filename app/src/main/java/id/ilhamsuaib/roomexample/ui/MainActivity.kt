@@ -1,9 +1,8 @@
 package id.ilhamsuaib.roomexample.ui
 
-import android.arch.persistence.room.Room
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
+import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -31,13 +30,13 @@ class MainActivity : AppCompatActivity() {
 
         personAdapter = ArrayAdapter(this, R.layout.adapter_person, personList)
         lvPerson.adapter = personAdapter
-        lvPerson.setOnItemClickListener { parent, view, position, id ->
+        lvPerson.setOnItemClickListener { _, _, position, _ ->
             AlertDialog.Builder(this)
                     .setMessage("Delete ${personList[position].firstName}?")
-                    .setPositiveButton("yes", { _, _ ->
+                    .setPositiveButton("yes") { _, _ ->
                         deletePerson(personList[position])
-                    })
-                    .setNegativeButton("no", { dialog, _ -> dialog.dismiss() })
+                    }
+                    .setNegativeButton("no") { dialog, _ -> dialog.dismiss() }
                     .show()
         }
         getAllPerson()
@@ -54,22 +53,20 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    fun showMessage(s: String){
+    private fun showMessage(s: String){
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
     }
 
-    fun getAllPerson(){
-        RoomExample.db?.personDao()?.getAllPerson()
-                ?.subscribeOn(Schedulers.io())
-                ?.observeOn(AndroidSchedulers.mainThread())
-                ?.subscribe({
+    private fun getAllPerson(){
+        RoomExample.db.personDao()
+                .getAllPerson()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
                     personList.clear()
                     personList.addAll(it)
                     personAdapter.notifyDataSetChanged()
-                }, {
-                    it.printStackTrace()
-                    showMessage("error while loading : ${it.message}")
-                })
+                }, Throwable::printStackTrace)
 
     }
 
@@ -78,32 +75,32 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
                 .setTitle("Add New Person")
                 .setView(v)
-                .setPositiveButton("save", {dialog, which ->
+                .setPositiveButton("save") { dialog, _ ->
                     savePerson(v.etFirstName.text.toString(), v.etLastName.text.toString())
-                })
-                .setNegativeButton("cancel", { dialog, _ -> dialog.cancel() })
+                    dialog.dismiss()
+                }
+                .setNegativeButton("cancel") { dialog, _ -> dialog.cancel() }
                 .show()
     }
 
     private fun savePerson(firstName: String, lastName: String) {
-        if (firstName.isNullOrEmpty() || lastName.isNullOrEmpty()){
+        if (firstName.isEmpty() || lastName.isEmpty()){
             showMessage("cant save, fistname and lastname cannot be blank")
             return
         }
         val person = Person(0, firstName, lastName)
-        Single.fromCallable { RoomExample.db?.personDao()?.addPerson(person) }
+        Single.fromCallable { RoomExample.db.personDao().addPerson(person) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     /*do something here when success*/
-                },{
-                    it.printStackTrace()
-                    showMessage("error while saving : ${it.message}")
-                })
+                }, Throwable::printStackTrace)
     }
 
-    fun deletePerson(person: Person){
-        Single.fromCallable { RoomExample.db?.personDao()?.deletePerson(person) }
+    private fun deletePerson(person: Person){
+        Single.fromCallable {
+            RoomExample.db.personDao().deletePerson(person)
+        }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe()

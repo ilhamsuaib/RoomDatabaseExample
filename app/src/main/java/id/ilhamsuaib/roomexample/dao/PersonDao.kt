@@ -10,6 +10,7 @@ import io.reactivex.Flowable
 /**
  * Created by ilham on 10/17/17.
  */
+
 @Dao
 interface PersonDao {
 

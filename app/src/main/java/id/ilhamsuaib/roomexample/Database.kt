@@ -8,7 +8,8 @@ import id.ilhamsuaib.roomexample.entity.Person
 /**
  * Created by ilham on 10/17/17.
  */
-@Database(entities = arrayOf(Person::class), version = 1)
+
+@Database(entities = [Person::class], version = 1)
 abstract class Database : RoomDatabase() {
 
     abstract fun personDao(): PersonDao
